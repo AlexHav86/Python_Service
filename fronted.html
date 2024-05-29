@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumables Database Interface</title>
+</head>
+<body>
+    <h1>Consumables Database Interface</h1>
+
+    <!-- Форма для добавления позиции -->
+    <h2>Add Position</h2>
+    <form id="addForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name"><br>
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category"><br>
+        <label for="amount">Amount:</label>
+        <input type="text" id="amount" name="amount"><br>
+        <label for="num_place">Num Place:</label>
+        <input type="text" id="num_place" name="num_place"><br>
+        <button type="submit">Add</button>
+    </form>
+
+    <!-- Форма для получения позиции по ID -->
+    <h2>Get Position by ID</h2>
+    <form id="getForm">
+        <label for="getId">Enter ID:</label>
+        <input type="text" id="getId" name="getId"><br>
+        <button type="submit">Get</button>
+    </form>
+
+    <!-- Кнопка для получения всей базы -->
+    <h2>Get All Positions</h2>
+    <button id="getAllButton">Get All</button>
+
+    <!-- Форма для удаления записи по ID -->
+    <h2>Delete Position by ID</h2>
+    <form id="deleteForm">
+        <label for="deleteId">Enter ID:</label>
+        <input type="text" id="deleteId" name="deleteId"><br>
+        <button type="submit">Delete</button>
+    </form>
+
+    <script>
+        // Функция для отправки POST запроса на сервер
+        function postData(url, data) {
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json());
+        }
+
+        // Функция для отправки GET запроса на сервер
+        function getData(url) {
+            return fetch(url)
+            .then(response => response.json());
+        }
+
+        // Функция для удаления записи по ID
+        function deletePosition(id) {
+            return fetch(`/del_consumables/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json());
+        }
+
+        // Обработчик события для добавления позиции
+        document.getElementById('addForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const data = {
+                name: form.name.value,
+                category: form.category.value,
+                amount: form.amount.value,
+                num_place: form.num_place.value
+            };
+            postData('/add_consambles', data)
+            .then(response => {
+                alert(response.session);
+                form.reset();
+            })
+            .catch(error => console.error('Error adding position:', error));
+        });
+
+        // Обработчик события для получения позиции по ID
+        document.getElementById('getForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('getId').value;
+            getData(`/get_consumables/${id}`)
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(JSON.stringify(data));
+                }
+            })
+            .catch(error => console.error('Error getting position by ID:', error));
+        });
+
+        // Обработчик события для получения всей базы
+        document.getElementById('getAllButton').addEventListener('click', function() {
+            getData('/get_all_consumables')
+            .then(data => alert(JSON.stringify(data)))
+            .catch(error => console.error('Error getting all positions:', error));
+        });
+
+        // Обработчик события для удаления записи по ID
+        document.getElementById('deleteForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('deleteId').value;
+            deletePosition(id)
+            .then(response => {
+                alert(response.session);
+                document.getElementById('deleteForm').reset();
+            })
+            .catch(error => console.error('Error deleting position by ID:', error));
+        });
+    </script>
+</body>
+</html>
